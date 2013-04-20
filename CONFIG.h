@@ -6,7 +6,7 @@
  */
 
 #ifndef CONFIG_H
-#define	CONFIG_H
+#define  CONFIG_H
 
 #include <p32xxxx.h>
 #include <plib.h>
@@ -89,4 +89,3 @@
 #define PB4_Pressed() !mPORTDReadBits( PB4 )
 
 #endif	/* CONFIG_H */
-
