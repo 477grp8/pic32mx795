@@ -44,11 +44,12 @@
 #include "UART.h"
 #include "LCD.h"
 #include "SDCARD.h"
-//#include "TIMER.h"
+#include "ADC.h"
+#include "TIMER.h"
 
 int main(void)
 {
-    int i;
+    int i = 0;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Configure the device for maximum performance but do not change the PBDIV
@@ -70,11 +71,11 @@ int main(void)
 
     initializeLCD();
     initializeUART();
+    initializeADC();
     configureInterrupts();
     // enable interrupts
     INTEnableInterrupts();
-    InitSPI();
-    testSPI();
+
     setup_SDSPI();
     SD_setStart();
     /* Fill tempBuffer[] with int 0 to 63
@@ -87,12 +88,12 @@ int main(void)
 
     //curr_read_block = curr_block;
 
-   // ConfigTimer1(); // Enable Timer1 for second counts
-   // configureInterrupts();
+    ConfigTimer1(); // Enable Timer1 for second counts
+    configureInterrupts();
     // Now blink all LEDs ON/OFF forever.
     while(1)
     {
-
+/*
             // Insert some delay
             i = 100000;
             while(i--) {
@@ -102,5 +103,73 @@ int main(void)
                     WriteString("test");
                 }
             };
+ */
+        if (getPrintToUARTFlag() == 1){
+            //LCDMenuControl();
+
+            //mPORTAToggleBits( LED_MASK );
+            convertAndPrintIntegerToString("i => ", i++);
+            /*
+            convertAndPrintIntegerToString("timeElapse => ", timeElapsed);
+            convertAndPrintIntegerToString("timeElapsedLEDSample => ", timeElapsedLEDSample);
+            convertAndPrintIntegerToString("timeElapsedLEDTurnedOff => ", timeElapsedLEDTurnedOff);
+            convertAndPrintIntegerToString("sampleLEDNow => ", sampleLEDNow);
+            */
+            convertAndPrintIntegerToString(" ADC Value (Channel 5 WRONG!) => ", getChannel5Value());
+            convertAndPrintIntegerToString(" ADC Value => ", getChannel4Value());
+            
+            printShadowDetect();
+            printLightLevel();
+            drawLightDetectedBar();
+            controlPowerRelay();
+
+            
+            switch(curr_state) {
+            case READY : WriteString("State => READY     ");
+                        break;
+            case SLEEP : WriteString("State => SLEEP    ");
+                        break;
+            case HIBERNATE : WriteString("State => HIBERNATE");
+                        break;
+            case BUSY : WriteString("State => BUSY     ");
+                        break;
+            }
+            
+            WriteString("\r");
+
+            setPrintToUARTFlag(0);
+        }
+        if (NEW_BYTE_RECEIVED == 1){
+            curr_state = READY;
+            NEW_BYTE_RECEIVED = 0;
+            //mPORTAToggleBits( LED_MASK );
+            //char tempArray[] = "g";
+            //tempArray[0] = characterByteReceived;
+            //WriteString(tempArray);
+            if(curr_state = HIBERNATE) {
+               addByteToBuffer(characterByteReceived, 0);
+            }
+            else {
+                PutCharacter(characterByteReceived);
+            }
+        }
+        if(bufferIndex == 512) {
+            SDWriteBlock(currBlock);
+            currBlock++;
+            bufferIndex = 0;
+        }
+         if((curr_state == READY) && (timeElapsed >= SLEEP_TIMEOUT) && (timeElapsed < HIBERNATE_TIMEOUT)) {
+             curr_state = SLEEP;
+         }
+         else if((curr_state == SLEEP) && (timeElapsed >= HIBERNATE_TIMEOUT)) {
+             curr_state = HIBERNATE;
+             timeElapsed = 0;
+         }
+        if (transmitDataFromSDCard == 1) {
+            transmitDataFromSDCard = 0;
+            forwardDataToPrinter();
+            bufferIndex = 0;
+        }
+
     }
 }
