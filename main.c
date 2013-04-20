@@ -35,13 +35,16 @@
  *********************************************************************
  * This program uses Explorer-16 to blink all of its LEDs at once.
  *
- * Platform: 	Explorer-16 with PIC32MX PIM
+ * Platform:     Explorer-16 with PIC32MX PIM
  *
  ********************************************************************/
 #include <plib.h>
 #include <p32xxxx.h>
 #include "CONFIG.h"
 #include "UART.h"
+#include "LCD.h"
+#include "SDCARD.h"
+//#include "TIMER.h"
 
 int main(void)
 {
@@ -60,20 +63,36 @@ int main(void)
 
     // Make all lower 8-bits of PORTA as output. Turn them off before changing
     // direction so that we don't have unexpected flashes
-    
+
     mPORTESetPinsDigitalOut( BIT_7 | BIT_6 | BIT_5 );
     mPORTESetBits(BIT_7 | BIT_6 | BIT_5);
-//    mPORTDSetPinsDigitalOut(BIT_1 | BIT_2 | BIT_3 | BIT_9);
-//    mPORTDSetBits(BIT_1 | BIT_2 | BIT_3 | BIT_9);
+
+
+    initializeLCD();
     initializeUART();
     configureInterrupts();
     // enable interrupts
     INTEnableInterrupts();
+    InitSPI();
+    testSPI();
+    setup_SDSPI();
+    SD_setStart();
+    /* Fill tempBuffer[] with int 0 to 63
+     * Write it to the current block.
+     * Empty tempBuffer[] to all 0.
+     * Read from the current block to make sure that it returns the right value.
+     */
+    fillTempBuffer();
+    testSDReadWrite(tempBuffer);
 
+    //curr_read_block = curr_block;
+
+   // ConfigTimer1(); // Enable Timer1 for second counts
+   // configureInterrupts();
     // Now blink all LEDs ON/OFF forever.
     while(1)
     {
-                
+
             // Insert some delay
             i = 100000;
             while(i--) {
@@ -85,4 +104,3 @@ int main(void)
             };
     }
 }
-
