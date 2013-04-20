@@ -46,6 +46,7 @@
 #include "SDCARD.h"
 #include "ADC.h"
 #include "TIMER.h"
+#include "RPG.h"
 
 int main(void)
 {
@@ -72,6 +73,7 @@ int main(void)
     initializeLCD();
     initializeUART();
     initializeADC();
+    initializeRPG();
     configureInterrupts();
     // enable interrupts
     INTEnableInterrupts();
@@ -93,19 +95,9 @@ int main(void)
     // Now blink all LEDs ON/OFF forever.
     while(1)
     {
-/*
-            // Insert some delay
-            i = 100000;
-            while(i--) {
-                if(i == 0) {
-                  mPORTEToggleBits(BIT_7 | BIT_6 | BIT_5);
-                 // mPORTDToggleBits(BIT_1 | BIT_2 | BIT_3 | BIT_9);
-                    WriteString("test");
-                }
-            };
- */
+        mPORTEToggleBits(BIT_5);
         if (getPrintToUARTFlag() == 1){
-            //LCDMenuControl();
+            LCDMenuControl();
 
             //mPORTAToggleBits( LED_MASK );
             convertAndPrintIntegerToString("i => ", i++);
