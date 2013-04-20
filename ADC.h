@@ -18,7 +18,7 @@
 
 
 #ifndef ADC_H
-#define  ADC_H
+#define ADC_H
 
 #include <p32xxxx.h>
 #include <plib.h>
@@ -213,18 +213,18 @@ void printShadowDetect() {
  * Power Relay Control based on light levels
  */
 void controlPowerRelay() {
-    mPORTGSetPinsDigitalOut( BIT_2 );
-    mPORTGSetPinsDigitalOut( BIT_3 );
+    mPORTESetPinsDigitalOut( BIT_6 );
+    mPORTESetPinsDigitalOut( BIT_7 );
     if(getChannel4Value() < MIN_LIGHT_THRESHOLD) {
-        mPORTGClearBits(BIT_2 );
-        mPORTGSetBits(BIT_3 );
+        mPORTEClearBits(BIT_6 );
+        mPORTESetBits(BIT_7 );
         if((curr_state == READY) || (curr_state == SLEEP)) {
             curr_state = HIBERNATE;
         }
     }
     else {
-        mPORTGSetBits(BIT_2 );
-        mPORTGClearBits(BIT_3 );
+        mPORTESetBits(BIT_6 );
+        mPORTEClearBits(BIT_7 );
         if(curr_state == HIBERNATE) {
             curr_state = READY;
             timeElapsed = 0;
