@@ -6,7 +6,7 @@
  */
 
 #ifndef UART_H
-#define	UART_H
+#define    UART_H
 
 #include <p32xxxx.h>
 #include <plib.h>
@@ -44,10 +44,10 @@ void initializeUART(void)
 void configureInterrupts(void)
 {
     // Configure UART2 RX Interrupt
-    INTEnable(INT_SOURCE_UART_RX(UART2), INT_ENABLED);
+   /* INTEnable(INT_SOURCE_UART_RX(UART2), INT_ENABLED);
     INTSetVectorPriority(INT_VECTOR_UART(UART2), INT_PRIORITY_LEVEL_2);
     INTSetVectorSubPriority(INT_VECTOR_UART(UART2), INT_SUB_PRIORITY_LEVEL_0);
-
+   */
     // Config UART1 Rx Interrupt
     // Higher priority than UART2 interrupt
     INTEnable(INT_SOURCE_UART_RX(UART1), INT_ENABLED);
@@ -192,4 +192,3 @@ void __ISR(_UART1_VECTOR, ipl3) IntUart1Handler(void)
         }
 }
 #endif	/* UART_H */
-
