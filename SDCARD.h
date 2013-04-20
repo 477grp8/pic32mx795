@@ -8,7 +8,7 @@
  */
 
 #ifndef SDCARD_H
-#define  SDCARD_H
+#define    SDCARD_H
 
 #include <p32xxxx.h>
 #include <plib.h>
@@ -128,8 +128,8 @@ unsigned char setup_SDSPI(void) {
 
     /* Set up I/O Port */
     //ADPCFG=0xFFFF;          /* Analog ports as Digital I/O */
-    TRISB = 0x0000; /* Port B output Data as well as serial port */
-    LATB = 0x0000; /* Initial Value of 0 */
+    //TRISB = 0x0000; /* Port B output Data as well as serial port */
+    //LATB = 0x0000; /* Initial Value of 0 */
 
     // Configure output pins
     //LED_DIR = 0;
@@ -172,7 +172,7 @@ unsigned char setup_SDSPI(void) {
      * The TRISB and LATB has to be LOW when accessing the SD card
      * but it has to be high for the ADC to receive the right amount of voltage
      */
-    TRISB = 0xFFFF; /* Port B output Data as well as serial port */
+    //TRISB = 0xFFFF; /* Port B output Data as well as serial port */
     //LATB = 0xFFFF; /* Initial Value of 0 */
 
 
@@ -213,7 +213,7 @@ unsigned char SDReadBlock(unsigned long block) {
     unsigned char res = 1;
 
 
-    TRISB = 0x0000; /* Port B output Data as well as serial port */
+    //TRISB = 0x0000; /* Port B output Data as well as serial port */
     //LATB = 0x0000; /* Initial Value of 0 */
 
     /*
@@ -275,7 +275,7 @@ unsigned char SDReadBlock(unsigned long block) {
      * The TRISB and LATB has to be LOW when accessing the SD card
      * but it has to be high for the ADC to receive the right amount of voltage
      */
-    TRISB = 0xFFFF;
+    //TRISB = 0xFFFF;
     //LATB = 0xFFFF;
 
     //LED = 0;
@@ -288,7 +288,7 @@ unsigned char SDWriteBlock(unsigned long block) {
     unsigned char status;
     unsigned char res = 1;
 
-    TRISB = 0x0000; /* Port B output Data as well as serial port */
+    //TRISB = 0x0000; /* Port B output Data as well as serial port */
     //LATB = 0x0000; /* Initial Value of 0 */
 
 
@@ -347,7 +347,7 @@ unsigned char SDWriteBlock(unsigned long block) {
      * The TRISB and LATB has to be LOW when accessing the SD card
      * but it has to be high for the ADC to receive the right amount of voltage
      */
-    TRISB = 0x0000;
+    //TRISB = 0x0000;
     //LATB = 0x0000;
 
     return (0);
