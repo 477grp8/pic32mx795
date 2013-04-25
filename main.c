@@ -88,16 +88,20 @@ int main(void)
     fillTempBuffer();
     testSDReadWrite(tempBuffer);
 
-    //curr_read_block = curr_block;
+    curr_read_block = curr_block;
 
     ConfigTimer1(); // Enable Timer1 for second counts
     configureInterrupts();
     // Now blink all LEDs ON/OFF forever.
     while(1)
     {
-        mPORTEToggleBits(BIT_5);
-        if (getPrintToUARTFlag() == 1){
+        if(controlLCDFlag == 1) {
+            controlLCDFlag = 0;
             LCDMenuControl();
+        }
+        if (getPrintToUARTFlag() == 1){
+            mPORTEToggleBits(BIT_5);
+            
 
             //mPORTAToggleBits( LED_MASK );
             convertAndPrintIntegerToString("i => ", i++);
@@ -107,7 +111,7 @@ int main(void)
             convertAndPrintIntegerToString("timeElapsedLEDTurnedOff => ", timeElapsedLEDTurnedOff);
             convertAndPrintIntegerToString("sampleLEDNow => ", sampleLEDNow);
             */
-            convertAndPrintIntegerToString(" ADC Value (Channel 5 WRONG!) => ", getChannel5Value());
+            //convertAndPrintIntegerToString(" ADC Value (Channel 5 WRONG!) => ", getChannel5Value());
             convertAndPrintIntegerToString(" ADC Value => ", getChannel4Value());
             
             printShadowDetect();
@@ -117,14 +121,14 @@ int main(void)
 
             
             switch(curr_state) {
-            case READY : WriteString("State => READY     ");
-                        break;
-            case SLEEP : WriteString("State => SLEEP    ");
-                        break;
-            case HIBERNATE : WriteString("State => HIBERNATE");
-                        break;
-            case BUSY : WriteString("State => BUSY     ");
-                        break;
+            case READY     : WriteString(" State => READY     ");
+                             break;
+            case SLEEP     : WriteString(" State => SLEEP     ");
+                             break;
+            case HIBERNATE : WriteString(" State => HIBERNATE ");
+                             break;
+            case BUSY      : WriteString(" State => BUSY      ");
+                             break;
             }
             
             WriteString("\r");
@@ -148,6 +152,9 @@ int main(void)
         if(bufferIndex == 512) {
             SDWriteBlock(currBlock);
             currBlock++;
+            if(curr_block > 55000) {
+               curr_block = 0;
+            }
             bufferIndex = 0;
         }
          if((curr_state == READY) && (timeElapsed >= SLEEP_TIMEOUT) && (timeElapsed < HIBERNATE_TIMEOUT)) {
@@ -162,6 +169,5 @@ int main(void)
             forwardDataToPrinter();
             bufferIndex = 0;
         }
-
     }
 }
