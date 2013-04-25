@@ -177,13 +177,13 @@ void drawLightDetectedBar() {
  */
 void printLightLevel() {
     if(getChannel4Value() < MIN_LIGHT_THRESHOLD) {
-            WriteString(" Light Level : LOW ");
+            WriteString(" Light Level : LOW    ");
     }
     else if(getChannel4Value() < (2*MIN_LIGHT_THRESHOLD)) {
             WriteString(" Light Level : MEDIUM ");
     }
     else {
-            WriteString(" Light Level : HIGH ");
+            WriteString(" Light Level : HIGH   ");
     }
 
 }
@@ -197,7 +197,7 @@ void printLightLevel() {
  */
 void printShadowDetect() {
     if(getChannel4Value() < MIN_SHADOW_DETECTED_THRESHOLD) {
-            WriteString(" Shadow - DETECTED ");
+            WriteString(" Shadow - DETECTED     ");
     }
     else {
             WriteString(" Shadow - NOT DETECTED ");
