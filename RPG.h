@@ -5,7 +5,7 @@
  * Created on April 8, 2013, 10:02 PM
  */
 #ifndef RPG_H
-#define  RPG_H
+#define    RPG_H
 
 #include <p32xxxx.h>
 #include <plib.h>
