@@ -74,6 +74,11 @@ void convertAndPrintIntegerToString(char * stringToBePrinted, int valueToBePrint
     int lengthOfInteger = 0;
 
     WriteString(stringToBePrinted);
+
+    if(valueToBePrinted == 0) { // Corner case for if value is 0, then just print 0 and return
+        WriteString("0 ");
+        return;
+    }
     /*
      *  Loop to count number of digits in the integer to be printed.
      */
