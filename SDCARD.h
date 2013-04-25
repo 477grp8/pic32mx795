@@ -46,7 +46,7 @@ void SD_writeCurr(void);
 void SD_readCurr(void);
 unsigned char SDReadBlock(unsigned long);
 unsigned char SDWriteBlock(unsigned long);
-
+unsigned char SDReadMultipleBlock(unsigned long block);
 
 
 
@@ -61,7 +61,10 @@ unsigned char SDWriteBlock(unsigned long);
 //internal macros
 #define HEX 16
 #define READ_CMD 17
+#define READ_MUL_CMD 18
+#define STOP_READ_MUL 12
 #define DUMMY 0xFF
+#define DUMMY_STOP 0xC3
 #define START_BLOCK_TOKEN 0xFE
 // R1 Response Codes (from SD Card Product Manual v1.9 section 5.2.3.1)
 #define R1_IN_IDLE_STATE    (1<<0)   // The card is in idle state and running initializing process.
@@ -146,7 +149,7 @@ unsigned char setup_SDSPI(void) {
         }
         res = SDReadBlock(start_block);
     } while (res);
-
+    //SPI4BRG = 0x0009; //BAUD = 4Mhz = Fpb/(2*(SPI1BRG+1))    //0x60;    // 50 khz BRG
     //LED = 1;
 
     //char msg[] = "init\n";
@@ -259,7 +262,7 @@ unsigned char SDReadBlock(unsigned long block) {
     int i = 0;
     theData = buffer;
     for (offset = 0; offset < SD_BLOCK_SIZE * 8; offset++) {
-       while(i < 150){
+       while(i < 250){  // NOPs to account for timing problems
             i++;
        }
         *theData = SPIRead();
@@ -359,7 +362,7 @@ unsigned char SDWriteBlock(unsigned long block) {
 unsigned char InitSD(void) {
     unsigned int i = 0;
     unsigned char status;
-
+    InitSPI();
     // Turn off SD Card
     SD_Disable();
 
@@ -453,7 +456,7 @@ void InitSPI(void) {
 
     SPI4CON = 0;
     SPI4STAT = 0;
-    SPI4BRG = 0x0004; //BAUD = 4Mhz = Fpb/(2*(SPI1BRG+1))    //0x60;    // 50 khz BRG
+    SPI4BRG = 0x0009; //BAUD = 4Mhz = Fpb/(2*(SPI1BRG+1))    //0x60;    // 50 khz BRG
     SPI4CONbits.CKE = 1; //Rising edge
     SPI4CONbits.MSTEN = 1;
     SPI4CONbits.ON = 1;
@@ -637,7 +640,12 @@ void forwardDataToPrinter() {
         WriteString(tempArray);
 
         curr_read_block++;
+        if(curr_read_block > 55000) {
+            curr_read_block = 0;
+        }
     }
+    //SDReadMultipleBlock(curr_read_block);
+    
     for(j = 0; j < tempBufferIndex; j++) {
         PutCharacter(tempBufferArray[j]);
     }
@@ -649,7 +657,106 @@ void addByteToBuffer(char characterToWrite, int bufferNumber) {
     else {
         buffer1[bufferIndex++] = characterToWrite;
     }
+}
 
+unsigned char SDReadMultipleBlock(unsigned long block) {
+    buffer_typ* theData;
+    unsigned char read_cmd[6];
+    unsigned char status = 0x0;
+    unsigned int offset = 0;
+    unsigned char res = 1;
+
+
+    //TRISB = 0x0000; /* Port B output Data as well as serial port */
+    //LATB = 0x0000; /* Initial Value of 0 */
+
+    /*
+      if(block >= total_blocks)
+      {
+        //too large for small disc
+        return SD_ERR;
+      } */
+
+    while (res) {
+        res = InitSD();
+    }
+
+    //LED = 0;
+
+    //send the read command
+    block = block * SD_BLOCK_SIZE * 8; //need to be correct offset
+    read_cmd[0] = READ_MUL_CMD;
+    read_cmd[1] = ((block & 0xFF000000) >> 24);
+    read_cmd[2] = ((block & 0x00FF0000) >> 16);
+    read_cmd[3] = ((block & 0x0000FF00) >> 8);
+    read_cmd[4] = ((block & 0x000000FF));
+    read_cmd[5] = DUMMY;
+    SD_Enable();
+    status = SD_WriteCommand(read_cmd);
+    if (status != 0) {
+        //printbyte(status);
+        return SD_ERR;
+    }
+
+    //find the start of the read
+    do {
+        status = SPIRead();
+    } while (status != START_BLOCK_TOKEN);
+
+    //read the bytes
+  /*  theData = buffer;
+    for (offset = 0; offset < SD_BLOCK_SIZE * 8; offset++) {
+        *theData = (512 - offset) % 255;
+        //printbyte(*theData);
+        theData++;
+    }*/
+    int i = 0;
+    theData = buffer;
+    while(curr_read_block != curr_block){
+        for (offset = 0; offset < SD_BLOCK_SIZE * 8; offset++) {
+            while(i < 250){  // NOPs to account for timing problems
+                i++;
+            }
+            *theData = SPIRead();
+            //printbyte(*theData);
+            theData++;
+        }
+        WriteString(theData);
+        curr_read_block++;
+    }
+
+    /*SEND STOP COMMAND*/
+    read_cmd[0] = STOP_READ_MUL;
+    read_cmd[1] = ((block & 0xFF000000) >> 24);
+    read_cmd[2] = ((block & 0x00FF0000) >> 16);
+    read_cmd[3] = ((block & 0x0000FF00) >> 8);
+    read_cmd[4] = ((block & 0x000000FF));
+    read_cmd[5] = DUMMY_STOP;
+    SD_Enable();
+    status = SD_WriteCommand(read_cmd);
+    i = 0;
+    do {
+        status = SPIRead();
+        if(i > 10){
+            return SD_ERR;
+        }
+        i++;
+    } while (status != 0);
+
+    SD_Disable();
+
+    //pump for eight cycles according to spec
+    SPIWrite(0xFF);
+
+    /*
+     * The TRISB and LATB has to be LOW when accessing the SD card
+     * but it has to be high for the ADC to receive the right amount of voltage
+     */
+    //TRISB = 0xFFFF;
+    //LATB = 0xFFFF;
+
+    //LED = 0;
+    return OK;
 }
 #endif	/* SDCARD_H */
 
