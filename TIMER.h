@@ -20,6 +20,7 @@
 unsigned short int SecondParts;
 unsigned short int TenthSecond = 0;
 unsigned short int SecondCount = 0;
+unsigned short int MilliSecondCount = 0;
 int timeElapsed = 0;
 int timeElapsedLEDSample = 0;
 int LED_SAMPLE_COUNT = 1000; // Sample every 10 seconds
@@ -27,8 +28,9 @@ int timeElapsedLEDTurnedOff = 0;
 int LED_TURN_OFF_COUNT = 1000; // Sample every 10 seconds
 int sampleLEDNow = 0;
 int printToUARTflag = 0;
-
+int controlLCDFlag = 0;
 #define T1_FREQ 100
+#define T500_FREQ 50 // for 500 milliseconds
 #define TENTH_SEC       10 // count var for tenth of a second
 
 // Macro to instruct micro that a 'new second'
@@ -46,6 +48,8 @@ int printToUARTflag = 0;
 
 // actions to take every second
 #define EverySecondDo(x)                if( SecondCount > 0 ) { SecondCount--; } else { SecondCount = T1_FREQ-1; x }
+// actions to take every 500ms
+#define Every500MilliSecondDo(x)                if( MilliSecondCount > 0 ) { MilliSecondCount--; } else { MilliSecondCount = T500_FREQ-1; x }
 
 /**************************************************************************************
         Function Prototypes
@@ -91,7 +95,9 @@ void __ISR(_TIMER_1_VECTOR, ipl3) Timer1Handler(void)
             SampleLexmarkLEDVoltage();
             setPrintToUARTFlag(1);
          })
-
+        Every500MilliSecondDo({
+             controlLCDFlag = 1;
+         })
 
       /*   if((timeElapsedLEDSample >= LED_SAMPLE_COUNT) && (sampleLEDNow == 0)) {
              TurnOffLexmarkLED();
